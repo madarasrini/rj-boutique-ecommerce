@@ -10,8 +10,7 @@ import { errorHandler } from './server/middleware/errorHandler';
 async function startServer() {
   const app = express();
   console.log("ENV PORT:", process.env.PORT);
-
-const PORT = Number(process.env.PORT);
+  const PORT = Number(process.env.PORT) || 10000;
 
   // render fix
 
