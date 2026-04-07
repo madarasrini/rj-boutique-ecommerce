@@ -30,15 +30,13 @@ export default function Checkout() {
     setIsProcessing(true);
 
     try {
-      const res = await fetch('/api/checkout', {
+      const res = await fetch('https://rj-boutique-ecommerce.onrender.com/api/order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           items: cart,
-          shippingAddress: address,
           paymentMethod,
         }),
       });
