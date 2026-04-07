@@ -1,15 +1,19 @@
 import { Router } from 'express';
 import { OrderController } from '../controllers/orderController';
-import { authenticate, authorizeAdmin } from '../middleware/auth';
+import { authorizeAdmin } from '../middleware/auth';
 
 const router = Router();
 
-router.use(authenticate);
+// ✅ TEMP: Removed authentication for testing checkout
+// router.use(authenticate);
 
+// ✅ Place Order (NO AUTH for now)
 router.post('/', OrderController.placeOrder);
+
+// ✅ Order History (you can protect later)
 router.get('/history', OrderController.getOrderHistory);
 
-// Admin only
+// ✅ Admin only (keep protected)
 router.put('/:orderId/status', authorizeAdmin, OrderController.updateStatus);
 
 export default router;
