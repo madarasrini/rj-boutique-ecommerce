@@ -9,10 +9,9 @@ import { errorHandler } from './server/middleware/errorHandler';
 
 async function startServer() {
   const app = express();
-  console.log("ENV PORT:", process.env.PORT);
-  const PORT = Number(process.env.PORT) || 10000;
 
-  // render fix
+  // ✅ PORT FIX (ONLY ONCE)
+  const PORT = Number(process.env.PORT) || 10000;
 
   app.use(cors());
   app.use(express.json());
@@ -43,9 +42,9 @@ async function startServer() {
     });
   }
 
+  // ✅ FINAL LISTEN
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`AI-Powered E-commerce Backend Initialized`);
+    console.log("PORT USED:", PORT);
   });
 }
 
