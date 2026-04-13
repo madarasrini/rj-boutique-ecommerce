@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
 import { useStore } from '../store';
 
 export default function Login() {
@@ -9,8 +8,14 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
-  const { setUser } = useStore();
+  const { user, setUser } = useStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/profile');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +35,7 @@ export default function Login() {
 
       if (res.ok) {
         setUser(data.user, data.token);
-        navigate(-1); // Go back to previous page
+        navigate('/profile');
       } else {
         setError(data.error || 'Authentication failed');
       }
@@ -40,11 +45,7 @@ export default function Login() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="min-h-[80vh] flex items-center justify-center px-4"
-    >
+    <div className="min-h-[80vh] flex items-center justify-center px-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-xl border border-zinc-100">
         <div className="text-center mb-8">
           <div className="w-12 h-12 bg-zinc-900 rounded-xl flex items-center justify-center mx-auto mb-4">
@@ -121,6 +122,6 @@ export default function Login() {
           </p>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

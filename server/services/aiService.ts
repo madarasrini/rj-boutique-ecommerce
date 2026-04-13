@@ -1,10 +1,35 @@
 import { GoogleGenAI } from "@google/genai";
 import db from '../../db';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiInstance: GoogleGenAI | null = null;
+
+function getAI() {
+  if (!aiInstance) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    // Basic validation to ensure it's not a placeholder or empty
+    if (!apiKey || apiKey.length < 20 || apiKey === 'TODO' || apiKey.includes('YOUR_API_KEY')) {
+      console.warn("GEMINI_API_KEY is missing or invalid. AI features will be disabled.");
+      return null;
+    }
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+}
 
 export class AIService {
+  private static handleAIError(error: any, context: string) {
+    if (error?.status === 'INVALID_ARGUMENT' || error?.message?.includes('API key not valid')) {
+      console.error(`[AI Service] ${context}: Invalid API Key. Please check your GEMINI_API_KEY in Settings.`);
+      return "AI features are currently unavailable due to an invalid API key.";
+    }
+    console.error(`[AI Service] ${context}:`, error);
+    return "Unable to process request at this time.";
+  }
+
   static async smartSearch(query: string, products: any[]) {
+    const ai = getAI();
+    if (!ai) return [];
+
     const model = "gemini-3-flash-preview";
     const prompt = `
       You are an e-commerce search assistant.
@@ -23,12 +48,15 @@ export class AIService {
       });
       return JSON.parse(response.text || "[]");
     } catch (error) {
-      console.error("Smart Search Error:", error);
+      this.handleAIError(error, "Smart Search");
       return [];
     }
   }
 
   static async supportChat(message: string, userContext: any) {
+    const ai = getAI();
+    if (!ai) return "I'm sorry, my AI brain is currently disconnected. Please try again later.";
+
     const model = "gemini-3-flash-preview";
     
     // Fetch context
@@ -59,12 +87,14 @@ export class AIService {
       });
       return response.text;
     } catch (error) {
-      console.error("Chat Error:", error);
-      return "I'm sorry, I'm having trouble connecting to my brain right now. Please try again later.";
+      return this.handleAIError(error, "Chat");
     }
   }
 
   static async getRecommendations(userHistory: any[], products: any[]) {
+    const ai = getAI();
+    if (!ai) return [];
+
     const model = "gemini-3-flash-preview";
     const prompt = `
       Based on the user's purchase/view history: ${JSON.stringify(userHistory)}
@@ -81,12 +111,15 @@ export class AIService {
       });
       return JSON.parse(response.text || "[]");
     } catch (error) {
-      console.error("Recommendation Error:", error);
+      this.handleAIError(error, "Recommendations");
       return [];
     }
   }
 
   static async generateEmbedding(text: string) {
+    const ai = getAI();
+    if (!ai) return null;
+
     try {
       const result = await ai.models.embedContent({
         model: 'gemini-embedding-2-preview',
@@ -94,12 +127,15 @@ export class AIService {
       });
       return result.embeddings[0].values;
     } catch (error) {
-      console.error("Embedding Error:", error);
+      this.handleAIError(error, "Embedding");
       return null;
     }
   }
 
   static async generateAdminInsights(topSelling: any[], products: any[]) {
+    const ai = getAI();
+    if (!ai) return "AI insights are currently unavailable due to missing API key.";
+
     const model = "gemini-3-flash-preview";
     const prompt = `
       You are a senior business analyst for an e-commerce platform.
@@ -118,8 +154,7 @@ export class AIService {
       });
       return response.text;
     } catch (error) {
-      console.error("Insights Error:", error);
-      return "Unable to generate insights at this time.";
+      return this.handleAIError(error, "Admin Insights");
     }
   }
 

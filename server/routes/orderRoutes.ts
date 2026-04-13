@@ -4,12 +4,13 @@ import { authenticate, authorizeAdmin } from '../middleware/auth';
 
 const router = Router();
 
-router.use(authenticate);
-
-router.post('/', OrderController.placeOrder);
-router.get('/history', OrderController.getOrderHistory);
+router.post('/', authenticate, OrderController.placeOrder);
+router.get('/', authenticate, OrderController.getOrderHistory);
+router.get('/history', authenticate, OrderController.getOrderHistory);
+router.get('/track/:trackingNumber', OrderController.trackOrder);
+router.get('/:orderId', authenticate, OrderController.getOrderById);
 
 // Admin only
-router.put('/:orderId/status', authorizeAdmin, OrderController.updateStatus);
+router.put('/:orderId/status', authenticate, authorizeAdmin, OrderController.updateStatus);
 
 export default router;

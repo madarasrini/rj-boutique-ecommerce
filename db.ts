@@ -80,12 +80,23 @@ db.exec(`
     FOREIGN KEY (product_id) REFERENCES products (id),
     UNIQUE(user_id, product_id)
   );
+
+  CREATE TABLE IF NOT EXISTS payment_methods (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    provider TEXT,
+    last4 TEXT,
+    upi_id TEXT,
+    is_default INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id)
+  );
 `);
 
 // Seed initial products if none exist
 const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get() as { count: number };
-if (true) { // Force re-seed to update prices to real market rates
-  db.exec('DELETE FROM products');
+if (productCount.count === 0) {
   const insertProduct = db.prepare(`
     INSERT INTO products (name, description, price, discount_price, image_url, category, variants)
     VALUES (?, ?, ?, ?, ?, ?, ?)

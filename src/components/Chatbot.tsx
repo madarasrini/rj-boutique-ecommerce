@@ -81,7 +81,7 @@ export default function Chatbot() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="bg-white rounded-2xl shadow-2xl w-80 sm:w-96 h-[500px] flex flex-col mb-4 overflow-hidden border border-zinc-200"
+            className="bg-white rounded-3xl shadow-2xl w-96 sm:w-[400px] h-[550px] flex flex-col mb-4 overflow-hidden border border-zinc-200"
           >
             {/* Header */}
             <div className="bg-zinc-900 text-white p-4 flex items-center justify-between">

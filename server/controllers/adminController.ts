@@ -12,7 +12,11 @@ export class AdminController {
       const totalRevenue = db.prepare('SELECT SUM(total_amount) as total FROM orders WHERE status != "Cancelled"').get() as any;
       
       const topSelling = db.prepare(`
-        SELECT p.id, p.name, SUM(oi.quantity) as total_sold
+        SELECT 
+          p.id, 
+          p.name, 
+          SUM(oi.quantity) as total_sold,
+          SUM(oi.quantity * oi.price) as revenue
         FROM order_items oi
         JOIN products p ON oi.product_id = p.id
         GROUP BY p.id

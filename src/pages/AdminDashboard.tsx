@@ -30,6 +30,7 @@ interface User {
   email: string;
   address: string | null;
   is_admin: number;
+  blocked: number;
   created_at: string;
 }
 
@@ -177,7 +178,7 @@ export default function AdminDashboard() {
   const handleUpdateProduct = async () => {
     if (!editingProduct) return;
     try {
-      const res = await fetch(`/api/admin/products/${editingProduct.id}`, {
+      const res = await fetch(`/api/products/${editingProduct.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -197,7 +198,7 @@ export default function AdminDashboard() {
   const handleDeleteProduct = async (id: number) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
     try {
-      const res = await fetch(`/api/admin/products/${id}`, {
+      const res = await fetch(`/api/products/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -672,7 +673,7 @@ export default function AdminDashboard() {
                       <div className="text-xs text-zinc-500">{item.total_sold} units sold</div>
                     </div>
                   </div>
-                  <div className="font-bold text-zinc-900">₹{item.revenue.toLocaleString('en-IN')}</div>
+                  <div className="font-bold text-zinc-900">₹{(item.revenue || 0).toLocaleString('en-IN')}</div>
                 </div>
               ))}
             </div>

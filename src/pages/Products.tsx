@@ -72,7 +72,7 @@ export default function Products() {
     );
   };
 
-  const categories = ['All', ...new Set(products.map(p => p.category))];
+  const categories = ['All', ...new Set(products.map(p => p.category))].filter(cat => cat !== 'Fashion' && cat !== 'Books');
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 

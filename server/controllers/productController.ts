@@ -30,7 +30,8 @@ export class ProductController {
   static async create(req: Request, res: Response) {
     try {
       const productId = ProductModel.create(req.body);
-      res.status(201).json({ message: 'Product created', productId });
+      const product = ProductModel.findById(Number(productId));
+      res.status(201).json(product);
     } catch (error) {
       res.status(500).json({ message: 'Server error' });
     }

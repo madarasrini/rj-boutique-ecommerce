@@ -13,6 +13,7 @@ import Login from './pages/Login';
 import OrderTracking from './pages/OrderTracking';
 import OrderLookup from './pages/OrderLookup';
 import AdminDashboard from './pages/AdminDashboard';
+import AddPaymentMethod from './pages/AddPaymentMethod';
 import Chatbot from './components/Chatbot';
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="/orders/:id" element={<OrderTracking />} />
             <Route path="/track" element={<OrderLookup />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/add-payment" element={<AddPaymentMethod />} />
           </Routes>
         </main>
         <Footer />

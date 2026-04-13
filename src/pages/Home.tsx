@@ -65,27 +65,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-zinc-900 mb-8">Shop by Category</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {['Electronics', 'Wearables', 'Furniture', 'Accessories', 'Fashion', 'Home', 'Books'].map((cat) => (
-              <Link
-                key={cat}
-                to={`/products?category=${cat}`}
-                className="flex flex-col items-center p-6 bg-zinc-50 rounded-2xl hover:bg-zinc-100 transition-all group"
-              >
-                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
-                  <ShoppingBag className="w-6 h-6 text-zinc-900" />
-                </div>
-                <span className="text-sm font-medium text-zinc-900">{cat}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Featured Products */}
       <section className="py-24 bg-zinc-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

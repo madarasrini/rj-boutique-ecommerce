@@ -5,26 +5,21 @@ import { AuthRequest } from '../middleware/auth';
 export class OrderController {
   static async placeOrder(req: AuthRequest, res: Response) {
     const userId = req.user?.id;
-    const { shippingAddress, paymentMethod } = req.body;
+    const { items, shippingAddress, paymentMethod } = req.body;
 
     try {
-      const cartItems = db.prepare(`
-        SELECT c.*, p.price 
-        FROM cart_items c 
-        JOIN products p ON c.product_id = p.id 
-        WHERE c.user_id = ?
-      `).all(userId) as any[];
-
-      if (cartItems.length === 0) {
+      if (!items || items.length === 0) {
         return res.status(400).json({ message: 'Cart is empty' });
       }
 
-      const totalAmount = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const totalAmount = items.reduce((sum: number, item: any) => sum + ((item.discount_price || item.price) * item.quantity), 0);
+
+      const trackingNumber = 'TRK' + Math.random().toString(36).substring(2, 10).toUpperCase();
 
       const result = db.prepare(`
-        INSERT INTO orders (user_id, total_amount, shipping_address, payment_method)
-        VALUES (?, ?, ?, ?)
-      `).run(userId, totalAmount, shippingAddress, paymentMethod);
+        INSERT INTO orders (user_id, total_amount, shipping_address, payment_method, tracking_number)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(userId, totalAmount, shippingAddress, paymentMethod, trackingNumber);
 
       const orderId = result.lastInsertRowid;
 
@@ -33,14 +28,14 @@ export class OrderController {
         VALUES (?, ?, ?, ?)
       `);
 
-      for (const item of cartItems) {
-        insertItem.run(orderId, item.product_id, item.quantity, item.price);
+      for (const item of items) {
+        insertItem.run(orderId, item.id, item.quantity, item.discount_price || item.price);
       }
 
-      // Clear cart
+      // Clear backend cart just in case
       db.prepare('DELETE FROM cart_items WHERE user_id = ?').run(userId);
 
-      res.status(201).json({ message: 'Order placed successfully', orderId });
+      res.status(201).json({ message: 'Order placed successfully', orderId, trackingNumber });
     } catch (error) {
       res.status(500).json({ message: 'Server error' });
     }
@@ -51,6 +46,49 @@ export class OrderController {
     try {
       const orders = db.prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC').all(userId);
       res.json(orders);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  static async getOrderById(req: AuthRequest, res: Response) {
+    const userId = req.user?.id;
+    const { orderId } = req.params;
+    try {
+      const order = db.prepare('SELECT * FROM orders WHERE id = ? AND user_id = ?').get(orderId, userId) as any;
+      if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+
+      const items = db.prepare(`
+        SELECT oi.*, p.name, p.image_url 
+        FROM order_items oi 
+        JOIN products p ON oi.product_id = p.id 
+        WHERE oi.order_id = ?
+      `).all(orderId);
+
+      res.json({ ...order, items });
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  static async trackOrder(req: Request, res: Response) {
+    const { trackingNumber } = req.params;
+    try {
+      const order = db.prepare('SELECT * FROM orders WHERE tracking_number = ?').get(trackingNumber) as any;
+      if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+
+      const items = db.prepare(`
+        SELECT oi.*, p.name, p.image_url 
+        FROM order_items oi 
+        JOIN products p ON oi.product_id = p.id 
+        WHERE oi.order_id = ?
+      `).all(order.id);
+
+      res.json({ ...order, items });
     } catch (error) {
       res.status(500).json({ message: 'Server error' });
     }

@@ -30,7 +30,7 @@ export default function Checkout() {
     setIsProcessing(true);
 
     try {
-      const res = await fetch('/api/checkout', {
+      const res = await fetch('/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,11 +141,11 @@ export default function Checkout() {
 
             <button 
               type="button" 
-              onClick={() => navigate('/checkout-payment')}
+              onClick={() => navigate('/checkout-payment', { state: { address } })}
               disabled={!address}
               className="w-full bg-zinc-900 text-white py-4 rounded-full font-semibold text-lg hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Proceed to Checkout <ArrowRight className="w-5 h-5" />
+              Proceed to Payment <ArrowRight className="w-5 h-5" />
             </button>
           </form>
         </div>

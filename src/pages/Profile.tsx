@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useStore } from '../store';
-import { Package, MapPin, LogOut, ChevronRight } from 'lucide-react';
+import { Package, MapPin, LogOut, ChevronRight, CreditCard, Plus, Smartphone, Trash2 } from 'lucide-react';
 
 interface Order {
   id: number;
@@ -16,6 +16,7 @@ export default function Profile() {
   const { user, token, logout, setUser } = useStore();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   
   // Structured address state
@@ -56,8 +57,14 @@ export default function Profile() {
     fetch('/api/orders', {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => res.json())
-      .then((data) => setOrders(data));
+      .then((res) => res.ok ? res.json() : [])
+      .then((data) => setOrders(Array.isArray(data) ? data : []));
+
+    fetch('/api/payments', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.ok ? res.json() : [])
+      .then((data) => setPaymentMethods(Array.isArray(data) ? data : []));
   }, [user, token, navigate]);
 
   const handleLogout = () => {
@@ -162,6 +169,56 @@ export default function Profile() {
                 </button>
               </div>
             )}
+          </div>
+
+          <div className="bg-white border border-zinc-100 p-6 rounded-3xl shadow-sm mt-6">
+            <h3 className="font-bold text-zinc-900 mb-4 flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-zinc-400" /> Payment Methods
+            </h3>
+            <div className="space-y-3">
+              {paymentMethods.length === 0 ? (
+                <p className="text-xs text-zinc-500 italic mb-4">No payment methods saved.</p>
+              ) : (
+                paymentMethods.map(method => (
+                  <div key={method.id} className="flex items-center justify-between p-3 bg-zinc-50 rounded-2xl border border-zinc-100">
+                    <div className="flex items-center gap-3">
+                      {method.type === 'UPI' ? <Smartphone className="w-4 h-4 text-zinc-400" /> : <CreditCard className="w-4 h-4 text-zinc-400" />}
+                      <div>
+                        <div className="text-xs font-bold text-zinc-900">
+                          {method.type === 'UPI' ? method.upi_id : `•••• ${method.last4}`}
+                        </div>
+                        <div className="text-[10px] text-zinc-500">{method.provider}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {method.is_default === 1 && <span className="text-[8px] font-bold uppercase bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">Default</span>}
+                      <button 
+                        onClick={async () => {
+                          if (confirm('Delete this payment method?')) {
+                            const res = await fetch(`/api/payments/${method.id}`, {
+                              method: 'DELETE',
+                              headers: { Authorization: `Bearer ${token}` }
+                            });
+                            if (res.ok) {
+                              setPaymentMethods(paymentMethods.filter(m => m.id !== method.id));
+                            }
+                          }
+                        }}
+                        className="p-1 text-zinc-300 hover:text-red-600 transition-colors"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+              <Link
+                to="/add-payment"
+                className="w-full py-2.5 bg-zinc-900 text-white rounded-xl text-xs font-bold hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2"
+              >
+                <Plus className="w-3 h-3" /> Add New Method
+              </Link>
+            </div>
           </div>
         </div>
 
