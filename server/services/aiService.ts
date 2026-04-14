@@ -6,12 +6,19 @@ let aiInstance: GoogleGenAI | null = null;
 function getAI() {
   if (!aiInstance) {
     const apiKey = process.env.GEMINI_API_KEY;
-    // Basic validation to ensure it's not a placeholder or empty
-    if (!apiKey || apiKey.length < 20 || apiKey === 'TODO' || apiKey.includes('YOUR_API_KEY')) {
-      console.warn("GEMINI_API_KEY is missing or invalid. AI features will be disabled.");
+    
+    if (!apiKey || apiKey === 'TODO' || apiKey.includes('YOUR_API_KEY')) {
+      console.warn("GEMINI_API_KEY is missing or placeholder. AI features will be disabled.");
       return null;
     }
-    aiInstance = new GoogleGenAI({ apiKey });
+    
+    try {
+      aiInstance = new GoogleGenAI({ apiKey });
+      console.log("AI Service: Gemini API initialized successfully.");
+    } catch (e) {
+      console.error("AI Service: Failed to initialize Gemini API:", e);
+      return null;
+    }
   }
   return aiInstance;
 }

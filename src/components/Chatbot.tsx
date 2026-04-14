@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, X, Send, User, Bot } from 'lucide-react';
+import { MessageSquare, X, Send, User, Bot, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { getSupportChatResponse } from '../lib/gemini';
+import { useStore } from '../store';
 
 interface Message {
   id: string;
@@ -23,6 +25,8 @@ export default function Chatbot() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const { user } = useStore();
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -42,25 +46,29 @@ export default function Chatbot() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ message: input })
-      });
+      // Fetch context for AI
+      const [productsRes, ordersRes] = await Promise.all([
+        fetch('/api/products?limit=10'),
+        user ? fetch('/api/orders', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }) : Promise.resolve({ ok: false })
+      ]);
 
-      const data = await response.json();
+      const products = productsRes.ok ? await (productsRes as Response).json() : [];
+      const orders = ('json' in ordersRes && ordersRes.ok) ? await (ordersRes as Response).json() : [];
+
+      const response = await getSupportChatResponse(currentInput, {
+        user: user || { name: 'Guest' },
+        orders,
+        products
+      });
       
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response || 'I am sorry, I am having trouble responding right now.',
+        text: response,
         sender: 'bot',
         timestamp: new Date()
       };
@@ -68,6 +76,13 @@ export default function Chatbot() {
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
       console.error('Chat error:', error);
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'I am sorry, I am having trouble responding right now.',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, botMessage]);
     } finally {
       setIsLoading(false);
     }

@@ -3,6 +3,8 @@ import { useStore } from '../store';
 import { motion } from 'motion/react';
 import { Package, Users, IndianRupee, ShoppingBag, CheckCircle, Clock, Truck, ChevronRight, Plus, Trash2, Edit2, Save, X, Search, Download, Filter } from 'lucide-react';
 
+import { generateAdminInsights } from '../lib/gemini';
+
 interface Order {
   id: number;
   user_name: string;
@@ -70,6 +72,41 @@ export default function AdminDashboard() {
     stock: 100
   });
 
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+
+  const fetchAIInsights = async (topSelling: any[], allProducts: any[]) => {
+    if (topSelling.length === 0 || allProducts.length === 0) return;
+    setIsLoadingInsights(true);
+    try {
+      const insights = await generateAdminInsights(topSelling, allProducts);
+      setAiInsights(insights || "No insights generated.");
+    } catch (err) {
+      setAiInsights("Unable to load AI insights.");
+    } finally {
+      setIsLoadingInsights(false);
+    }
+  };
+
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  const seedDemoData = async () => {
+    setIsSeeding(true);
+    try {
+      const res = await fetch('/api/admin/seed-demo', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        alert('Demo data seeded successfully! Refreshing...');
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error seeding data:', error);
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
   useEffect(() => {
     if (!user?.is_admin) return;
 
@@ -77,21 +114,29 @@ export default function AdminDashboard() {
       setLoading(true);
       try {
         const headers = { 'Authorization': `Bearer ${token}` };
-        const [ordersRes, analyticsRes, productsRes, usersRes, insightsRes] = await Promise.all([
+        const [ordersRes, analyticsRes, productsRes, usersRes] = await Promise.all([
           fetch('/api/admin/orders', { headers }),
           fetch('/api/admin/analytics', { headers }),
-          fetch('/api/products'),
-          fetch('/api/admin/users', { headers }),
-          fetch('/api/admin/ai-insights', { headers })
+          fetch('/api/products?limit=1000'),
+          fetch('/api/admin/users', { headers })
         ]);
 
+        let fetchedProducts: any[] = [];
+        let fetchedStats: any = null;
+
         if (ordersRes.ok) setOrders(await ordersRes.json());
-        if (analyticsRes.ok) setStats(await analyticsRes.json());
-        if (productsRes.ok) setProducts(await productsRes.json());
+        if (analyticsRes.ok) {
+          fetchedStats = await analyticsRes.json();
+          setStats(fetchedStats);
+        }
+        if (productsRes.ok) {
+          fetchedProducts = await productsRes.json();
+          setProducts(fetchedProducts);
+        }
         if (usersRes.ok) setUsers(await usersRes.json());
-        if (insightsRes.ok) {
-          const data = await insightsRes.json();
-          setAiInsights(data.insights);
+
+        if (fetchedStats?.topSelling && fetchedProducts.length > 0) {
+          fetchAIInsights(fetchedStats.topSelling, fetchedProducts);
         }
       } catch (error) {
         console.error('Error fetching admin data:', error);
@@ -262,6 +307,13 @@ export default function AdminDashboard() {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading Admin Panel...</div>;
 
+  const statCards = [
+    { label: 'Total Revenue', value: `₹${(stats?.revenue || 0).toLocaleString('en-IN')}`, icon: IndianRupee, color: 'bg-emerald-50 text-emerald-600' },
+    { label: 'Total Orders', value: stats?.orders || 0, icon: ShoppingBag, color: 'bg-blue-50 text-blue-600' },
+    { label: 'Total Users', value: stats?.users || 0, icon: Users, color: 'bg-purple-50 text-purple-600' },
+    { label: 'Total Products', value: products.length, icon: Package, color: 'bg-orange-50 text-orange-600' },
+  ];
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-12">
@@ -271,12 +323,7 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        {[
-          { label: 'Total Revenue', value: `₹${stats?.revenue.toLocaleString('en-IN') || 0}`, icon: IndianRupee, color: 'bg-emerald-50 text-emerald-600' },
-          { label: 'Total Orders', value: stats?.orders || 0, icon: ShoppingBag, color: 'bg-blue-50 text-blue-600' },
-          { label: 'Total Users', value: stats?.users || 0, icon: Users, color: 'bg-purple-50 text-purple-600' },
-          { label: 'Total Products', value: products.length, icon: Package, color: 'bg-orange-50 text-orange-600' },
-        ].map((stat, i) => (
+        {statCards.map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
@@ -681,8 +728,15 @@ export default function AdminDashboard() {
 
           {/* Most Searched Queries */}
           <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-zinc-100">
+            <div className="p-6 border-b border-zinc-100 flex justify-between items-center">
               <h2 className="text-xl font-bold text-zinc-900">Most Searched Queries</h2>
+              <button
+                onClick={seedDemoData}
+                disabled={isSeeding}
+                className="text-xs font-bold text-blue-600 hover:text-blue-700 disabled:opacity-50"
+              >
+                {isSeeding ? 'Seeding...' : 'Seed Demo Orders'}
+              </button>
             </div>
             <div className="divide-y divide-zinc-100">
               {stats?.mostSearched.map((item, i) => (

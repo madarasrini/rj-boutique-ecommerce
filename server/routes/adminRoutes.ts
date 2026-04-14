@@ -9,7 +9,7 @@ router.use(authenticate, authorizeAdmin);
 
 // Analytics
 router.get('/analytics', AdminController.getAnalytics);
-router.get('/ai-insights', AdminController.getAIInsights);
+router.post('/seed-demo', AdminController.seedDemoData);
 
 // User Management
 router.get('/users', AdminController.getAllUsers);
