@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center px-4">
+    <div class="max-w-md w-full bg-white p-8 rounded-3xl border border-zinc-100 shadow-sm">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-zinc-900">Welcome Back</h1>
+            <p class="text-zinc-500 mt-2">Login to your PythonStore account</p>
+        </div>
+
+        <form action="/login" method="POST" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-2">Email Address</label>
+                <input type="email" name="email" required class="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:ring-2 focus:ring-zinc-900 outline-none transition-all" placeholder="admin@rjai.com">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-2">Password</label>
+                <input type="password" name="password" required class="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:ring-2 focus:ring-zinc-900 outline-none transition-all" placeholder="••••••••">
+            </div>
+            
+            <button type="submit" class="w-full py-3 bg-zinc-900 text-white font-bold rounded-xl hover:bg-zinc-800 transition-colors shadow-lg shadow-zinc-200">
+                Sign In
+            </button>
+        </form>
+
+        <div class="mt-8 pt-6 border-t border-zinc-100 text-center">
+            <p class="text-sm text-zinc-500">Demo Admin: <span class="font-mono text-zinc-900">admin@rjai.com / admin123</span></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

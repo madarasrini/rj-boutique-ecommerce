@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="mb-12 text-center">
+        <h1 class="text-4xl font-bold tracking-tight text-zinc-900 mb-4">Premium Tech, Pure Python.</h1>
+        <p class="text-zinc-500 max-w-2xl mx-auto">Experience the power of a full-stack Python application. Fast, secure, and beautifully simple.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {% for product in products %}
+        <div class="group bg-white rounded-2xl border border-zinc-100 overflow-hidden hover:shadow-xl transition-all duration-300">
+            <div class="aspect-square overflow-hidden bg-zinc-100 relative">
+                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer">
+                <div class="absolute top-4 right-4">
+                    <span class="px-2 py-1 bg-white/90 backdrop-blur-sm text-[10px] font-bold uppercase tracking-wider rounded-md border border-zinc-100">New Arrival</span>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="text-xs text-zinc-400 font-bold uppercase tracking-widest mb-1">{{ product.category.name }}</div>
+                <h3 class="font-semibold text-zinc-900 mb-2">{{ product.name }}</h3>
+                <div class="flex items-center justify-between mt-4">
+                    <span class="text-lg font-bold text-zinc-900">₹{{ "{:,.2f}".format(product.price) }}</span>
+                    <form action="/cart/add/{{ product.id }}" method="POST">
+                        <button type="submit" class="p-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

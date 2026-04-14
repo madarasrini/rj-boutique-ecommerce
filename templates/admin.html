@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="mb-12">
+        <h1 class="text-3xl font-bold text-zinc-900 mb-2">Admin Dashboard</h1>
+        <p class="text-zinc-500">Manage your store performance and inventory.</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="bg-white p-8 rounded-3xl border border-zinc-100 shadow-sm">
+            <div class="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-2">Total Revenue</div>
+            <div class="text-3xl font-bold text-emerald-600">₹{{ "{:,.2f}".format(stats.revenue) }}</div>
+        </div>
+        <div class="bg-white p-8 rounded-3xl border border-zinc-100 shadow-sm">
+            <div class="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-2">Total Orders</div>
+            <div class="text-3xl font-bold text-blue-600">{{ stats.orders }}</div>
+        </div>
+        <div class="bg-white p-8 rounded-3xl border border-zinc-100 shadow-sm">
+            <div class="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-2">Total Users</div>
+            <div class="text-3xl font-bold text-purple-600">{{ stats.users }}</div>
+        </div>
+    </div>
+
+    <!-- Product Management -->
+    <div class="bg-white rounded-3xl border border-zinc-100 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-zinc-100 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-zinc-900">Product Management</h2>
+            <button class="px-4 py-2 bg-zinc-900 text-white text-sm font-bold rounded-xl hover:bg-zinc-800 transition-colors">Add Product</button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-zinc-50 text-zinc-500 text-xs font-bold uppercase tracking-wider">
+                        <th class="px-6 py-4">Product</th>
+                        <th class="px-6 py-4">Category</th>
+                        <th class="px-6 py-4">Price</th>
+                        <th class="px-6 py-4">Stock</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100">
+                    {% for p in products %}
+                    <tr class="hover:bg-zinc-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <img src="{{ p.image_url }}" class="w-10 h-10 rounded-lg object-cover" referrerPolicy="no-referrer">
+                                <span class="font-medium text-zinc-900">{{ p.name }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-zinc-500">{{ p.category.name }}</td>
+                        <td class="px-6 py-4 font-bold text-zinc-900">₹{{ "{:,.2f}".format(p.price) }}</td>
+                        <td class="px-6 py-4 text-sm text-zinc-500">{{ p.stock }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
